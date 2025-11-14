@@ -1,0 +1,18 @@
+# Test Document DOCX
+
+## Introduction
+Ceci est un document de test pour valider le parsing Docling avec un format DOCX.
+
+## Section 1: Fonctionnalités
+- Parsing de texte
+- Structure hiérarchique
+- Listes et énumérations
+
+## Section 2: Données techniques
+Voici quelques données techniques importantes:
+- Fréquence: 2.4 GHz
+- Puissance: 20 dBm
+- Portée: 100 mètres
+
+## Conclusion
+Ce document permet de tester le parsing DOCX avec Docling.

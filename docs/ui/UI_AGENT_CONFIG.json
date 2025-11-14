@@ -1,0 +1,245 @@
+{
+  "project": {
+    "name": "StudyRAG UI",
+    "description": "Interface utilisateur moderne pour StudyRAG - système RAG pour l'analyse de documents académiques",
+    "version": "1.0.0",
+    "backend_url": "http://localhost:8000",
+    "websocket_url": "ws://localhost:8000"
+  },
+  "tech_stack": {
+    "framework": "Next.js 14+ (App Router)",
+    "language": "TypeScript",
+    "styling": "Tailwind CSS",
+    "components": "ShadCN/UI",
+    "state_management": "@tanstack/react-query",
+    "icons": "Lucide React",
+    "file_upload": "react-dropzone",
+    "websocket": "native WebSocket API"
+  },
+  "api_endpoints": {
+    "base_url": "http://localhost:8000",
+    "health": {
+      "endpoint": "/health",
+      "method": "GET",
+      "description": "Vérification de l'état du serveur"
+    },
+    "documents": {
+      "upload": {
+        "endpoint": "/api/v1/documents/upload",
+        "method": "POST",
+        "content_type": "multipart/form-data",
+        "description": "Upload de documents multiples"
+      },
+      "list": {
+        "endpoint": "/api/v1/database/documents",
+        "method": "GET",
+        "query_params": ["page", "limit", "status", "file_type", "sort_by", "sort_order", "search"],
+        "description": "Liste paginée des documents"
+      },
+      "get": {
+        "endpoint": "/api/v1/database/documents/{id}",
+        "method": "GET",
+        "description": "Détails d'un document"
+      },
+      "delete": {
+        "endpoint": "/api/v1/database/documents/{id}",
+        "method": "DELETE",
+        "description": "Suppression d'un document"
+      },
+      "reindex": {
+        "endpoint": "/api/v1/database/reindex/{id}",
+        "method": "POST",
+        "description": "Réindexation d'un document"
+      },
+      "status": {
+        "endpoint": "/api/v1/documents/status/{task_id}",
+        "method": "GET",
+        "description": "Statut de traitement d'un document"
+      },
+      "stats": {
+        "endpoint": "/api/v1/database/stats",
+        "method": "GET",
+        "description": "Statistiques de la base de données"
+      }
+    },
+    "search": {
+      "search": {
+        "endpoint": "/api/v1/search",
+        "method": "POST",
+        "description": "Recherche sémantique dans les documents"
+      }
+    },
+    "chat": {
+      "message": {
+        "endpoint": "/api/v1/chat/message",
+        "method": "POST",
+        "description": "Envoi d'un message au chat IA"
+      },
+      "conversations": {
+        "endpoint": "/api/v1/chat/conversations",
+        "method": "GET",
+        "description": "Liste des conversations"
+      },
+      "conversation": {
+        "endpoint": "/api/v1/chat/conversations/{id}",
+        "method": "GET",
+        "description": "Historique d'une conversation"
+      },
+      "delete_conversation": {
+        "endpoint": "/api/v1/chat/conversations/{id}",
+        "method": "DELETE",
+        "description": "Suppression d'une conversation"
+      }
+    },
+    "config": {
+      "embeddings": {
+        "endpoint": "/api/v1/config/models/embeddings",
+        "methods": ["GET", "PUT"],
+        "description": "Configuration des modèles d'embedding"
+      },
+      "chat_models": {
+        "endpoint": "/api/v1/config/models/chat",
+        "methods": ["GET", "PUT"],
+        "description": "Configuration des modèles de chat"
+      }
+    }
+  },
+  "websocket": {
+    "processing_updates": {
+      "endpoint": "/ws/processing",
+      "description": "Mises à jour temps réel du traitement des documents",
+      "message_types": ["document_processing", "system_status"]
+    }
+  },
+  "file_constraints": {
+    "supported_types": ["pdf", "docx", "html", "txt", "md"],
+    "max_file_size": "50MB",
+    "max_files_per_upload": 10
+  },
+  "ui_requirements": {
+    "responsive": true,
+    "dark_mode": true,
+    "accessibility": "WCAG 2.1 AA",
+    "real_time_updates": true,
+    "offline_support": false
+  },
+  "pages_structure": {
+    "dashboard": {
+      "path": "/",
+      "description": "Vue d'ensemble avec statistiques et actions rapides"
+    },
+    "documents": {
+      "path": "/documents",
+      "description": "Gestion des documents avec upload, liste, et actions",
+      "sub_pages": {
+        "document_detail": "/documents/[id]"
+      }
+    },
+    "search": {
+      "path": "/search",
+      "description": "Interface de recherche sémantique avec filtres"
+    },
+    "chat": {
+      "path": "/chat",
+      "description": "Interface de chat avec l'IA",
+      "sub_pages": {
+        "conversation": "/chat/[conversationId]"
+      }
+    },
+    "settings": {
+      "path": "/settings",
+      "description": "Configuration des modèles et paramètres système"
+    }
+  },
+  "components_needed": {
+    "layout": [
+      "Navbar",
+      "Sidebar", 
+      "Footer",
+      "StatusIndicator",
+      "ThemeToggle"
+    ],
+    "documents": [
+      "DocumentUpload (drag & drop)",
+      "DocumentList (table avec tri/filtres)",
+      "DocumentCard",
+      "DocumentDetail",
+      "ProcessingStatus",
+      "FilePreview"
+    ],
+    "search": [
+      "SearchBar",
+      "SearchFilters",
+      "SearchResults",
+      "ResultCard",
+      "HighlightedText"
+    ],
+    "chat": [
+      "ChatInterface",
+      "MessageBubble",
+      "ConversationSidebar",
+      "TypingIndicator",
+      "SourcesDisplay",
+      "MessageInput"
+    ],
+    "common": [
+      "LoadingSpinner",
+      "ErrorBoundary",
+      "Toast/Notifications",
+      "ConfirmDialog",
+      "ProgressBar",
+      "EmptyState"
+    ]
+  },
+  "design_system": {
+    "colors": {
+      "primary": "Blue (ShadCN default)",
+      "secondary": "Gray",
+      "success": "Green",
+      "warning": "Yellow", 
+      "error": "Red"
+    },
+    "typography": {
+      "font_family": "Inter (Google Fonts)",
+      "headings": "font-semibold",
+      "body": "font-normal"
+    },
+    "spacing": "Tailwind default (4px base)",
+    "border_radius": "ShadCN default (0.5rem)",
+    "shadows": "ShadCN default"
+  },
+  "features_priority": {
+    "high": [
+      "Document upload avec drag & drop",
+      "Liste des documents avec statuts",
+      "Recherche sémantique",
+      "Chat avec l'IA",
+      "Mises à jour temps réel"
+    ],
+    "medium": [
+      "Gestion des conversations",
+      "Configuration des modèles",
+      "Statistiques et analytics",
+      "Export des données"
+    ],
+    "low": [
+      "Thème sombre",
+      "Raccourcis clavier",
+      "Notifications push",
+      "Mode hors ligne"
+    ]
+  },
+  "performance_requirements": {
+    "initial_load": "< 3 secondes",
+    "file_upload": "Progress tracking en temps réel",
+    "search_response": "< 1 seconde",
+    "chat_response": "Streaming si possible",
+    "real_time_updates": "< 100ms latence"
+  },
+  "security_considerations": {
+    "file_validation": "Client et serveur",
+    "xss_protection": "Sanitization des inputs",
+    "csrf_protection": "Tokens CSRF si nécessaire",
+    "file_size_limits": "Validation côté client et serveur"
+  }
+}

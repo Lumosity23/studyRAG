@@ -1,0 +1,11 @@
+Ceci est un document de test pour StudyRAG.
+
+StudyRAG est un système de Retrieval-Augmented Generation (RAG) conçu pour l'analyse de documents académiques.
+
+Fonctionnalités principales :
+- Upload de documents PDF, DOCX, HTML, TXT, MD
+- Recherche sémantique intelligente
+- Chat avec l'IA basé sur vos documents
+- Interface web moderne et responsive
+
+Ce document de test contient suffisamment de contenu pour tester les fonctionnalités de traitement et d'indexation de StudyRAG.

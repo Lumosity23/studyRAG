@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Document HTML</title>
+</head>
+<body>
+    <h1>Cours d'Électronique - ESP32</h1>
+    
+    <h2>Introduction</h2>
+    <p>L'ESP32 est un microcontrôleur développé par Espressif Systems. Il intègre WiFi et Bluetooth dans un seul chip.</p>
+    
+    <h2>Caractéristiques techniques</h2>
+    <ul>
+        <li>Processeur: Dual-core Xtensa LX6</li>
+        <li>Fréquence: jusqu'à 240 MHz</li>
+        <li>RAM: 520 KB SRAM</li>
+        <li>Flash: 4 MB (minimum)</li>
+        <li>WiFi: 802.11 b/g/n</li>
+        <li>Bluetooth: v4.2 BR/EDR et BLE</li>
+    </ul>
+    
+    <h2>Applications</h2>
+    <p>L'ESP32 est utilisé dans de nombreuses applications IoT:</p>
+    <ul>
+        <li>Capteurs connectés</li>
+        <li>Systèmes domotiques</li>
+        <li>Objets connectés</li>
+        <li>Prototypage rapide</li>
+    </ul>
+    
+    <h2>Programmation</h2>
+    <p>L'ESP32 peut être programmé avec plusieurs environnements:</p>
+    <ul>
+        <li>Arduino IDE</li>
+        <li>ESP-IDF (framework officiel)</li>
+        <li>MicroPython</li>
+        <li>PlatformIO</li>
+    </ul>
+    
+    <h2>Exemple de code</h2>
+    <pre>
+#include "WiFi.h"
+
+void setup() {
+  Serial.begin(115200);
+  WiFi.begin("SSID", "password");
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(1000);
+    Serial.println("Connecting to WiFi...");
+  }
+  
+  Serial.println("Connected to WiFi");
+}
+
+void loop() {
+  // Code principal
+}
+    </pre>
+    
+    <h2>Conclusion</h2>
+    <p>L'ESP32 est une solution puissante et polyvalente pour les projets IoT. Sa facilité d'utilisation et ses nombreuses fonctionnalités en font un choix populaire pour les développeurs.</p>
+</body>
+</html>

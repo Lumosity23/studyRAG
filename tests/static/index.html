@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyRAG - Assistant IA pour Documents Académiques</title>
+    
+    <!-- Embedded Tailwind CSS -->
+    <link rel="stylesheet" href="/static/tailwind-embedded.css">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="/static/styles.css">
+    
+    <!-- Icons System -->
+    <script src="/static/icons.js"></script>
+    
+    <style>
+        :root {
+            --radius: 0.5rem;
+        }
+        
+        /* Custom scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: hsl(217.2 32.6% 17.5%);
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: hsl(215 20.2% 65.1%);
+            border-radius: 3px;
+        }
+        
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: hsl(210 40% 98%);
+        }
+        
+        /* Typing animation */
+        .typing-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+        }
+        
+        .typing-dots span {
+            width: 4px;
+            height: 4px;
+            background: currentColor;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Message animations */
+        .message-enter {
+            animation: slideUp 0.3s ease-out;
+        }
+        
+        /* File upload drag styles */
+        .drag-over {
+            border-color: hsl(210 40% 98%);
+            background-color: hsl(217.2 32.6% 17.5%);
+        }
+    </style>
+</head>
+
+<body class="bg-background text-foreground antialiased">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-80 bg-card border-r border-border flex flex-col transition-all duration-300 ease-in-out">
+            <!-- Header -->
+            <div class="p-6 border-b border-border">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <i data-lucide="brain-circuit" class="w-5 h-5 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold">StudyRAG</h1>
+                        <p class="text-sm text-muted-foreground">Assistant IA</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <nav class="flex-1 p-4 space-y-2">
+                <button id="new-chat-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>Nouvelle conversation</span>
+                </button>
+                
+                <div class="space-y-1">
+                    <h3 class="px-4 py-2 text-sm font-medium text-muted-foreground">Conversations</h3>
+                    <div id="conversations-list" class="space-y-1 max-h-96 overflow-y-auto custom-scrollbar">
+                        <!-- Conversations will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="space-y-1 pt-4 border-t border-border">
+                    <button id="documents-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                        <span>Documents</span>
+                    </button>
+                    
+                    <button id="search-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i data-lucide="search" class="w-4 h-4"></i>
+                        <span>Recherche</span>
+                    </button>
+                    
+                    <button id="settings-btn" class="w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4"></i>
+                        <span>Paramètres</span>
+                    </button>
+                </div>
+            </nav>
+            
+            <!-- Footer -->
+            <div class="p-4 border-t border-border">
+                <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-muted">
+                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+                        <i data-lucide="user" class="w-4 h-4 text-white"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium truncate">Utilisateur</p>
+                        <p class="text-xs text-muted-foreground">En ligne</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col">
+            <!-- Header -->
+            <header class="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-between px-6">
+                <div class="flex items-center gap-4">
+                    <button id="sidebar-toggle" class="lg:hidden p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i data-lucide="menu" class="w-5 h-5"></i>
+                    </button>
+                    
+                    <div>
+                        <h2 id="current-title" class="text-lg font-semibold">Nouvelle conversation</h2>
+                        <p class="text-sm text-muted-foreground">Posez vos questions sur vos documents</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <button id="upload-btn" class="p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors" title="Uploader un document">
+                        <i data-lucide="upload" class="w-5 h-5"></i>
+                    </button>
+                    
+                    <button id="share-btn" class="p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors" title="Partager">
+                        <i data-lucide="share" class="w-5 h-5"></i>
+                    </button>
+                    
+                    <div class="w-px h-6 bg-border mx-2"></div>
+                    
+                    <div id="connection-status" class="flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 text-green-500">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-medium">Connecté</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Chat Area -->
+            <div class="flex-1 flex flex-col">
+                <!-- Welcome Screen -->
+                <div id="welcome-screen" class="flex-1 flex items-center justify-center p-8">
+                    <div class="max-w-2xl text-center space-y-8">
+                        <div class="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto">
+                            <i data-lucide="brain-circuit" class="w-10 h-10 text-white"></i>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                                StudyRAG Assistant
+                            </h1>
+                            <p class="text-xl text-muted-foreground">
+                                Votre assistant IA pour l'analyse de documents académiques
+                            </p>
+                            <p class="text-muted-foreground">
+                                Uploadez vos documents, posez des questions et obtenez des réponses contextualisées avec des citations précises.
+                            </p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <button class="quick-action-btn p-6 rounded-xl border border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200 group" data-action="upload">
+                                <i data-lucide="upload" class="w-8 h-8 mx-auto mb-3 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                                <p class="text-sm font-medium">Uploader</p>
+                                <p class="text-xs text-muted-foreground">Documents PDF, DOCX</p>
+                            </button>
+                            
+                            <button class="quick-action-btn p-6 rounded-xl border border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200 group" data-action="search">
+                                <i data-lucide="search" class="w-8 h-8 mx-auto mb-3 text-green-500 group-hover:scale-110 transition-transform"></i>
+                                <p class="text-sm font-medium">Rechercher</p>
+                                <p class="text-xs text-muted-foreground">Recherche sémantique</p>
+                            </button>
+                            
+                            <button class="quick-action-btn p-6 rounded-xl border border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200 group" data-action="analyze">
+                                <i data-lucide="file-search" class="w-8 h-8 mx-auto mb-3 text-purple-500 group-hover:scale-110 transition-transform"></i>
+                                <p class="text-sm font-medium">Analyser</p>
+                                <p class="text-xs text-muted-foreground">Analyse de contenu</p>
+                            </button>
+                            
+                            <button class="quick-action-btn p-6 rounded-xl border border-border hover:bg-accent hover:text-accent-foreground transition-all duration-200 group" data-action="summarize">
+                                <i data-lucide="file-text" class="w-8 h-8 mx-auto mb-3 text-orange-500 group-hover:scale-110 transition-transform"></i>
+                                <p class="text-sm font-medium">Résumer</p>
+                                <p class="text-xs text-muted-foreground">Synthèse automatique</p>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6 hidden">
+                    <!-- Messages will be added here -->
+                </div>
+                
+                <!-- Input Area -->
+                <div class="border-t border-border bg-card/50 backdrop-blur-sm p-6">
+                    <div class="max-w-4xl mx-auto">
+                        <div class="relative">
+                            <textarea 
+                                id="message-input" 
+                                placeholder="Posez votre question ici... (Shift + Entrée pour une nouvelle ligne)"
+                                class="w-full min-h-[60px] max-h-32 px-4 py-3 pr-12 bg-background border border-border rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
+                                rows="1"
+                            ></textarea>
+                            
+                            <div class="absolute right-2 bottom-2 flex items-center gap-2">
+                                <button id="attach-btn" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors" title="Joindre un fichier">
+                                    <i data-lucide="paperclip" class="w-4 h-4"></i>
+                                </button>
+                                
+                                <button 
+                                    id="send-btn" 
+                                    class="p-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled
+                                >
+                                    <i data-lucide="send" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-3 text-xs text-muted-foreground">
+                            <div class="flex items-center gap-4">
+                                <span>Utilisez Shift + Entrée pour une nouvelle ligne</span>
+                                <div id="typing-indicator" class="hidden flex items-center gap-2">
+                                    <div class="typing-dots">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                    <span>L'assistant écrit...</span>
+                                </div>
+                            </div>
+                            <span id="char-count">0 / 4000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modals and Overlays -->
+    
+    <!-- Upload Modal -->
+    <div id="upload-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-card border border-border rounded-lg w-full max-w-md">
+            <div class="p-6 border-b border-border">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Uploader un document</h3>
+                    <button id="upload-modal-close" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div id="upload-area" class="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-ring transition-colors cursor-pointer">
+                    <i data-lucide="upload-cloud" class="w-12 h-12 mx-auto mb-4 text-muted-foreground"></i>
+                    <p class="text-sm font-medium mb-2">Glissez-déposez vos fichiers ici</p>
+                    <p class="text-xs text-muted-foreground mb-4">ou cliquez pour sélectionner</p>
+                    <p class="text-xs text-muted-foreground">PDF, DOCX, TXT, MD (max 50MB)</p>
+                </div>
+                
+                <input type="file" id="file-input" class="hidden" multiple accept=".pdf,.docx,.txt,.md,.html">
+                
+                <div id="upload-progress" class="hidden mt-4 space-y-2">
+                    <!-- Upload progress items will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search Modal -->
+    <div id="search-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-card border border-border rounded-lg w-full max-w-2xl">
+            <div class="p-6 border-b border-border">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-semibold">Recherche dans les documents</h3>
+                    <button id="search-modal-close" class="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="relative mb-4">
+                    <input 
+                        type="text" 
+                        id="search-input" 
+                        placeholder="Rechercher dans vos documents..."
+                        class="w-full px-4 py-3 pl-10 bg-background border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+                    >
+                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"></i>
+                </div>
+                
+                <div id="search-results" class="space-y-3 max-h-96 overflow-y-auto custom-scrollbar">
+                    <!-- Search results will be added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+        <div class="bg-card border border-border rounded-lg p-8 text-center">
+            <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-lg font-medium mb-2">Traitement en cours...</p>
+            <p class="text-sm text-muted-foreground">Cela peut prendre quelques instants</p>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        <!-- Toasts will be added here -->
+    </div>
+    
+    <script src="/static/app.js"></script>
+</body>
+</html>
