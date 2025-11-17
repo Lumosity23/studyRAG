@@ -1,365 +1,319 @@
-# Docling RAG Agent
+# StudyRAG 🎓
 
-An intelligent text-based CLI agent that provides conversational access to a knowledge base stored in PostgreSQL with PGVector. Uses RAG (Retrieval Augmented Generation) to search through embedded documents and provide contextual, accurate responses with source citations. Supports multiple document formats including audio files with Whisper transcription.
+**Agent RAG local intelligent pour étudiants** - Système de génération augmentée par récupération utilisant Docling pour le traitement de documents, embeddings locaux, base de données vectorielle et Ollama pour les conversations IA.
 
-## 🎓 New to Docling?
+## ✨ Fonctionnalités
 
-**Start with the tutorials!** Check out the [`docling_basics/`](./docling_basics/) folder for progressive examples that teach Docling fundamentals:
+- 🤖 **Agent conversationnel local** avec Ollama (pas besoin d'OpenAI)
+- 📄 **Traitement multi-format** avec Docling (PDF, Word, PowerPoint, Excel, HTML, Audio)
+- 🔍 **Recherche sémantique** dans vos documents avec embeddings
+- 💾 **Base vectorielle** (ChromaDB + PostgreSQL/PGVector)
+- 🌐 **Interface web moderne** (React/Next.js) + CLI
+- 🎙️ **Transcription audio** avec Whisper
+- 📚 **Citations sources** pour toutes les réponses
+- 🔄 **Streaming en temps réel** des réponses
+- 🏠 **100% local** - vos données restent privées
 
-1. **Simple PDF Conversion** - Basic document processing
-2. **Multiple Format Support** - PDF, Word, PowerPoint handling
-3. **Audio Transcription** - Speech-to-text with Whisper
-4. **Hybrid Chunking** - Intelligent chunking for RAG systems
+## 🚀 Démarrage Ultra-Rapide
 
-These tutorials provide the foundation for understanding how this full RAG agent works. [**→ Go to Docling Basics**](./docling_basics/)
+### Prérequis
+- **Python 3.9+** avec [UV](https://docs.astral.sh/uv/) installé
+- **Node.js 18+** et npm (pour l'interface web)
+- **Ollama** installé et en cours d'exécution ([Installation Ollama](https://ollama.ai/))
 
-## Features
-
-- 💬 Interactive text-based CLI with streaming responses
-- 🔍 Semantic search through vector-embedded documents
-- 📚 Context-aware responses using RAG pipeline
-- 🎯 Source citation for all information provided
-- 🔄 Real-time streaming text output as tokens arrive
-- 💾 PostgreSQL/PGVector for scalable knowledge storage
-- 🧠 Conversation history maintained across turns
-- 🎙️ Audio transcription with Whisper ASR (MP3 files)
-
-## Prerequisites
-
-- Python 3.9 or later
-- PostgreSQL with PGVector extension (Supabase, Neon, self-hosted Postgres, etc.)
-- API Keys:
-  - OpenAI API key (for embeddings and LLM)
-
-## Quick Start
-
-### 1. Install Dependencies
+### Installation en 30 secondes
 
 ```bash
-# Install dependencies using UV
-uv sync
+# 1. Cloner le projet
+git clone <votre-repo>
+cd studyrag
+
+# 2. Démarrage automatique (backend + frontend)
+python start.py
+# OU
+./start.sh
 ```
 
-### 2. Set Up Environment Variables
+**C'est tout!** 🎉 Le script fait automatiquement:
+- ✅ Installation des dépendances Python et Node.js
+- ✅ Configuration de l'environnement (.env)
+- ✅ Démarrage du backend FastAPI
+- ✅ Démarrage du frontend React
+- ✅ Vérification des services
 
-Copy `.env.example` to `.env` and fill in your credentials:
+### Accès rapide
+- 🌐 **Interface web**: http://localhost:3000
+- 🔧 **API Backend**: http://localhost:8000
+- 📚 **Documentation**: http://localhost:8000/docs
+- ❤️ **Health Check**: http://localhost:8000/health
 
+## 🛠️ Configuration Manuelle (Optionnelle)
+
+Si vous préférez configurer manuellement:
+
+### 1. Variables d'environnement
 ```bash
 cp .env.example .env
+# Éditez .env selon vos besoins
 ```
 
-Required variables:
-- `DATABASE_URL` - PostgreSQL connection string with PGVector extension
-  - Example: `postgresql://user:password@localhost:5432/dbname`
-  - Supabase: `postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres`
-  - Neon: `postgresql://[user]:[password]@[endpoint].neon.tech/[dbname]`
+Variables principales:
+- `OLLAMA_BASE_URL` - URL d'Ollama (défaut: http://localhost:11434)
+- `LLM_CHOICE` - Modèle Ollama (défaut: llama3.2)
+- `DATABASE_URL` - Base de données (SQLite par défaut pour les tests)
+- `EMBEDDING_MODEL` - Modèle d'embeddings local
 
-- `OPENAI_API_KEY` - OpenAI API key for embeddings and LLM
-  - Get from: https://platform.openai.com/api-keys
+### 2. Installer Ollama et modèles
+```bash
+# Installer Ollama (si pas déjà fait)
+curl -fsSL https://ollama.ai/install.sh | sh
 
-Optional variables:
-- `LLM_CHOICE` - OpenAI model to use (default: `gpt-4o-mini`)
-- `EMBEDDING_MODEL` - Embedding model (default: `text-embedding-3-small`)
+# Démarrer Ollama
+ollama serve
 
-### 3. Configure Database
+# Installer des modèles (dans un autre terminal)
+ollama pull llama3.2        # Modèle principal recommandé
+ollama pull mistral         # Alternative
+ollama pull qwen2.5:7b      # Pour plus de performance
+```
 
-You must set up your PostgreSQL database with the PGVector extension and create the required schema:
+### 3. Ingestion de documents
 
-1. **Enable PGVector extension** in your database (most cloud providers have this pre-installed)
-   ```sql
-   CREATE EXTENSION IF NOT EXISTS vector;
-   ```
+Ajoutez vos documents dans le dossier `documents/` ou `test_samples/`:
 
-2. **Run the schema file** to create tables and functions:
-   ```bash
-   # In the SQL editor in Supabase/Neon, run:
-   sql/schema.sql
-
-   # Or using psql
-   psql $DATABASE_URL < sql/schema.sql
-   ```
-
-The schema file (`sql/schema.sql`) creates:
-- `documents` table for storing original documents with metadata
-- `chunks` table for text chunks with 1536-dimensional embeddings
-- `match_chunks()` function for vector similarity search
-
-### 4. Ingest Documents
-
-Add your documents to the `documents/` folder. **Multiple formats supported via Docling**:
-
-**Supported Formats:**
+**Formats supportés via Docling:**
 - 📄 **PDF** (`.pdf`)
-- 📝 **Word** (`.docx`, `.doc`)
+- 📝 **Word** (`.docx`, `.doc`) 
 - 📊 **PowerPoint** (`.pptx`, `.ppt`)
 - 📈 **Excel** (`.xlsx`, `.xls`)
 - 🌐 **HTML** (`.html`, `.htm`)
-- 📋 **Markdown** (`.md`, `.markdown`)
-- 📃 **Text** (`.txt`)
-- 🎵 **Audio** (`.mp3`) - transcribed with Whisper
+- 📋 **Markdown** (`.md`)
+- 📃 **Texte** (`.txt`)
+- 🎵 **Audio** (`.mp3`) - transcription avec Whisper
 
 ```bash
-# Ingest all supported documents in the documents/ folder
-# NOTE: By default, this CLEARS existing data before ingestion
+# Ingestion automatique
 uv run python -m ingestion.ingest --documents documents/
 
-# Adjust chunk size (default: 1000)
-uv run python -m ingestion.ingest --documents documents/ --chunk-size 800
+# Avec paramètres personnalisés
+uv run python -m ingestion.ingest --documents test_samples/ --chunk-size 800
 ```
 
-**⚠️ Important:** The ingestion process **automatically deletes all existing documents and chunks** from the database before adding new documents. This ensures a clean state and prevents duplicate data.
+### 4. Utilisation
 
-The ingestion pipeline will:
-1. **Auto-detect file type** and use Docling for PDFs, Office docs, HTML, and audio
-2. **Transcribe audio files** using Whisper Turbo ASR with timestamps
-3. **Convert to Markdown** for consistent processing
-4. **Split into semantic chunks** with configurable size
-5. **Generate embeddings** using OpenAI
-6. **Store in PostgreSQL** with PGVector for similarity search
+**Interface Web (Recommandée)**
+- Ouvrez http://localhost:3000
+- Interface moderne avec chat, upload de fichiers, gestion des documents
 
-### 5. Run the Agent
-
+**CLI Interactif**
 ```bash
-# Run the Docling RAG Agent CLI
 uv run python cli.py
 ```
 
-**Features:**
-- 🎨 **Colored output** for better readability
-- 📊 **Session statistics** (`stats` command)
-- 🔄 **Clear history** (`clear` command)
-- 💡 **Built-in help** (`help` command)
-- ✅ **Database health check** on startup
-- 🔍 **Real-time streaming** responses
+**API REST**
+- Documentation: http://localhost:8000/docs
+- Endpoints: `/api/v1/chat`, `/api/v1/documents`, `/api/v1/search`
 
-**Available commands:**
-- `help` - Show help information
-- `clear` - Clear conversation history
-- `stats` - Show session statistics
-- `exit` or `quit` - Exit the CLI
-
-**Example interaction:**
-```
-============================================================
-🤖 Docling RAG Knowledge Assistant
-============================================================
-AI-powered document search with streaming responses
-Type 'exit', 'quit', or Ctrl+C to exit
-Type 'help' for commands
-============================================================
-
-✓ Database connection successful
-✓ Knowledge base ready: 20 documents, 156 chunks
-Ready to chat! Ask me anything about the knowledge base.
-
-You: What topics are covered in the knowledge base?
-🤖 Assistant: Based on the knowledge base, the main topics include...
-
-────────────────────────────────────────────────────────────
-You: quit
-👋 Thank you for using the knowledge assistant. Goodbye!
-```
-
-## Architecture
+## 🏗️ Architecture
 
 ```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   CLI User  │────▶│  RAG Agent   │────▶│ PostgreSQL  │
-│   (Input)   │     │ (PydanticAI) │     │  PGVector   │
-└─────────────┘     └──────────────┘     └─────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │             │
-              ┌─────▼────┐  ┌────▼─────┐
-              │  OpenAI  │  │  OpenAI  │
-              │   LLM    │  │Embeddings│
-              └──────────┘  └──────────┘
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  React Frontend │────▶│   FastAPI        │────▶│   ChromaDB      │
+│  (Next.js)      │     │   Backend        │     │   + PostgreSQL  │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+                               │
+                        ┌──────┴──────┐
+                        │             │
+                  ┌─────▼────┐  ┌────▼─────────┐
+                  │  Ollama  │  │ Sentence     │
+                  │   LLM    │  │ Transformers │
+                  │ (Local)  │  │ (Embeddings) │
+                  └──────────┘  └──────────────┘
+                        │
+                  ┌─────▼────┐
+                  │ Docling  │
+                  │Document  │
+                  │Processing│
+                  └──────────┘
 ```
 
-## Audio Transcription Feature
+### Stack Technique
+- **Frontend**: React/Next.js avec Tailwind CSS
+- **Backend**: FastAPI avec PydanticAI
+- **LLM**: Ollama (modèles locaux)
+- **Embeddings**: Sentence Transformers (local)
+- **Base vectorielle**: ChromaDB + PostgreSQL/PGVector
+- **Traitement docs**: Docling + Whisper
+- **Déploiement**: Docker + Docker Compose
 
-Audio files are automatically transcribed using **OpenAI Whisper Turbo** model:
+## 🎙️ Transcription Audio
 
-**How it works:**
-1. When ingesting audio files (MP3 supported currently), Docling uses Whisper ASR
-2. Whisper generates accurate transcriptions with timestamps
-3. Transcripts are formatted as markdown with time markers
-4. Audio content becomes fully searchable through the RAG system
+Les fichiers audio sont automatiquement transcrits avec **Whisper** via Docling:
 
-**Benefits:**
-- 🎙️ **Speech-to-text**: Convert podcasts, interviews, lectures into searchable text
-- ⏱️ **Timestamps**: Track when specific content was mentioned
-- 🔍 **Semantic search**: Find audio content by topic or keywords
-- 🤖 **Fully automatic**: Drop audio files in `documents/` folder and run ingestion
+**Fonctionnement:**
+1. Déposez des fichiers MP3 dans `documents/`
+2. Docling utilise Whisper pour la transcription
+3. Le texte est indexé et devient recherchable
+4. Citations avec timestamps dans les réponses
 
-**Model details:**
-- Model: `openai/whisper-large-v3-turbo`
-- Optimized for: Speed and accuracy balance
-- Languages: Multilingual support (90+ languages)
-- Output format: Markdown with timestamps like `[time: 0.0-4.0] Transcribed text here`
+**Avantages:**
+- 🎙️ **Speech-to-text**: Podcasts, interviews, cours → texte recherchable
+- ⏱️ **Timestamps**: Localisation précise du contenu
+- 🔍 **Recherche sémantique**: Trouvez du contenu audio par sujet
+- 🤖 **100% automatique**: Glissez-déposez et c'est parti
 
-**Example transcript format:**
+**Exemple de transcription:**
 ```markdown
-[time: 0.0-4.0] Welcome to our podcast on AI and machine learning.
-[time: 5.28-9.96] Today we'll discuss retrieval augmented generation systems.
+[time: 0.0-4.0] Bienvenue dans ce podcast sur l'IA et l'apprentissage automatique.
+[time: 5.28-9.96] Aujourd'hui nous discuterons des systèmes RAG.
 ```
 
-## Key Components
+## 🧩 Composants Clés
 
-### RAG Agent
+### Agent RAG Principal
+- **`rag_agent.py`**: Agent conversationnel avec PydanticAI
+- **`cli.py`**: Interface en ligne de commande interactive
+- **`app/main.py`**: API FastAPI pour l'interface web
 
-The main agent (`rag_agent.py`) that:
-- Manages database connections with connection pooling
-- Handles interactive CLI with streaming responses
-- Performs knowledge base searches via RAG
-- Tracks conversation history for context
+### Pipeline d'Ingestion
+- **`ingestion/`**: Traitement automatique des documents
+- **Docling**: Conversion multi-format (PDF, Office, HTML, Audio)
+- **Chunking intelligent**: Découpage sémantique optimisé
+- **Embeddings locaux**: Sentence Transformers
 
-### search_knowledge_base Tool
+### Base de Données
+- **ChromaDB**: Base vectorielle simple pour les tests
+- **PostgreSQL + PGVector**: Base vectorielle scalable
+- **SQLite**: Option légère pour le développement
 
-Function tool registered with the agent that:
-- Generates query embeddings using OpenAI
-- Searches using PGVector cosine similarity
-- Returns top-k most relevant chunks
-- Formats results with source citations
+### Interface Web
+- **Frontend React**: Interface moderne et intuitive
+- **Upload de fichiers**: Glisser-déposer direct
+- **Chat en temps réel**: Streaming des réponses
+- **Gestion des documents**: Visualisation et organisation
 
-Example tool definition:
-```python
-async def search_knowledge_base(
-    ctx: RunContext[None],
-    query: str,
-    limit: int = 5
-) -> str:
-    """Search the knowledge base using semantic similarity."""
-    # Generate embedding for query
-    # Search PostgreSQL with PGVector
-    # Format and return results
-```
+## ⚡ Optimisations
 
-### Database Schema
+### Performance
+- **Cache des embeddings**: Réduction des calculs répétitifs
+- **Pool de connexions**: Gestion optimisée de la base de données
+- **Streaming**: Réponses en temps réel token par token
+- **Chunking adaptatif**: Taille optimisée selon le type de document
 
-- `documents`: Stores original documents with metadata
-  - `id`, `title`, `source`, `content`, `metadata`, `created_at`, `updated_at`
+### Sécurité et Confidentialité
+- **100% local**: Aucune donnée envoyée vers des services externes
+- **Ollama local**: LLM qui tourne sur votre machine
+- **Embeddings locaux**: Sentence Transformers sans API
+- **Données privées**: Vos documents restent sur votre système
 
-- `chunks`: Stores text chunks with vector embeddings
-  - `id`, `document_id`, `content`, `embedding` (vector(1536)), `chunk_index`, `metadata`, `token_count`
+## 🐳 Déploiement Docker
 
-- `match_chunks()`: PostgreSQL function for vector similarity search
-  - Uses cosine similarity (`1 - (embedding <=> query_embedding)`)
-  - Returns chunks with similarity scores above threshold
-
-## Performance Optimization
-
-### Database Connection Pooling
-```python
-db_pool = await asyncpg.create_pool(
-    DATABASE_URL,
-    min_size=2,
-    max_size=10,
-    command_timeout=60
-)
-```
-
-### Embedding Cache
-The embedder includes built-in caching for frequently searched queries, reducing API calls and latency.
-
-### Streaming Responses
-Token-by-token streaming provides immediate feedback to users while the LLM generates responses:
-```python
-async with agent.run_stream(user_input, message_history=history) as result:
-    async for text in result.stream_text(delta=False):
-        print(f"\rAssistant: {text}", end="", flush=True)
-```
-
-## Docker Deployment
-
-### Using Docker Compose
+### Démarrage avec Docker Compose
 
 ```bash
-# Start all services
+# Démarrer tous les services
 docker-compose up -d
 
-# Ingest documents
+# Ingestion de documents
 docker-compose --profile ingestion up ingestion
 
-# View logs
+# Voir les logs
 docker-compose logs -f rag-agent
 ```
 
-## API Reference
+### Déploiement Production
+```bash
+# Build optimisé
+docker build -t studyrag:prod .
 
-### search_knowledge_base Tool
-
-```python
-async def search_knowledge_base(
-    ctx: RunContext[None],
-    query: str,
-    limit: int = 5
-) -> str:
-    """
-    Search the knowledge base using semantic similarity.
-
-    Args:
-        query: The search query to find relevant information
-        limit: Maximum number of results to return (default: 5)
-
-    Returns:
-        Formatted search results with source citations
-    """
+# Lancement avec variables d'environnement
+docker run -d \
+  -e OLLAMA_BASE_URL=http://ollama:11434 \
+  -e DATABASE_URL=postgresql://... \
+  -p 8000:8000 \
+  studyrag:prod
 ```
 
-### Database Functions
+## 📚 Tutoriels et Exemples
 
-```sql
--- Vector similarity search
-SELECT * FROM match_chunks(
-    query_embedding::vector(1536),
-    match_count INT,
-    similarity_threshold FLOAT DEFAULT 0.7
-)
+### 🎓 Nouveau avec Docling?
+
+**Commencez par les tutoriels!** Consultez le dossier [`docling_basics/`](./docling_basics/) pour des exemples progressifs:
+
+1. **Conversion PDF simple** - Traitement de base des documents
+2. **Support multi-format** - PDF, Word, PowerPoint
+3. **Transcription audio** - Speech-to-text avec Whisper
+4. **Chunking hybride** - Découpage intelligent pour RAG
+
+### API REST
+
+**Endpoints principaux:**
+- `POST /api/v1/chat` - Conversation avec l'agent
+- `POST /api/v1/documents/upload` - Upload de documents
+- `GET /api/v1/documents` - Liste des documents
+- `POST /api/v1/search` - Recherche sémantique
+- `GET /health` - Statut des services
+
+**Documentation complète:** http://localhost:8000/docs
+
+## 📁 Structure du Projet
+
+```
+studyrag/
+├── start.py                 # 🚀 Script de démarrage automatique
+├── start.sh                 # 🚀 Script bash alternatif
+├── cli.py                   # 💬 Interface CLI interactive
+├── rag_agent.py             # 🤖 Agent RAG principal
+├── main.py                  # 📄 Point d'entrée legacy
+├── app/                     # 🌐 Backend FastAPI
+│   ├── main.py              # API principale
+│   ├── api/                 # Endpoints REST
+│   ├── core/                # Configuration et middleware
+│   ├── models/              # Modèles de données
+│   └── services/            # Services métier
+├── frontend/                # ⚛️ Interface React/Next.js
+│   ├── src/                 # Code source React
+│   ├── components/          # Composants UI
+│   ├── pages/               # Pages Next.js
+│   └── package.json         # Dépendances Node.js
+├── ingestion/               # 📥 Pipeline d'ingestion
+│   ├── ingest.py            # Script principal
+│   ├── embedder.py          # Génération d'embeddings
+│   └── chunker.py           # Découpage de documents
+├── utils/                   # 🔧 Modules utilitaires
+│   ├── providers.py         # Configuration Ollama/modèles
+│   ├── db_utils.py          # Gestion base de données
+│   └── models.py            # Modèles Pydantic
+├── documents/               # 📚 Vos documents à traiter
+├── test_samples/            # 📋 Fichiers d'exemple
+├── docling_basics/          # 🎓 Tutoriels Docling
+├── scripts/                 # 🧪 Scripts de test et debug
+├── docs/                    # 📖 Documentation
+├── sql/                     # 🗄️ Schémas base de données
+├── pyproject.toml           # 📦 Configuration Python/UV
+├── docker-compose.yml       # 🐳 Déploiement Docker
+└── README.md                # 📄 Ce fichier
 ```
 
-Returns chunks with:
-- `id`: Chunk UUID
-- `content`: Text content
-- `embedding`: Vector embedding
-- `similarity`: Cosine similarity score (0-1)
-- `document_title`: Source document title
-- `document_source`: Source document path
+## 🤝 Contribution
 
-## Project Structure
+1. Fork le projet
+2. Créez votre branche (`git checkout -b feature/AmazingFeature`)
+3. Committez vos changements (`git commit -m 'Add AmazingFeature'`)
+4. Push vers la branche (`git push origin feature/AmazingFeature`)
+5. Ouvrez une Pull Request
 
-```
-docling-rag-agent/
-├── cli.py                   # Enhanced CLI with colors and features (recommended)
-├── rag_agent.py             # Basic CLI agent with PydanticAI
-├── main.py                  # Main application entry point
-├── chat_rag.py              # Chat RAG implementation
-├── ingestion/               # Document ingestion pipeline
-│   ├── ingest.py            # Main ingestion script
-│   ├── embedder.py          # Embedding generation with caching
-│   └── chunker.py           # Document chunking logic
-├── utils/                   # Utility modules
-│   ├── providers.py         # OpenAI model/client configuration
-│   ├── db_utils.py          # Database connection pooling
-│   └── models.py            # Pydantic models for config
-├── sql/                     # Database schemas and migrations
-│   └── schema.sql           # PostgreSQL schema with PGVector
-├── app/                     # Web application (if applicable)
-├── static/                  # Static files for web interface
-├── documents/               # Documents for ingestion
-├── docling_basics/          # Docling tutorial examples
-├── examples/                # Usage examples
-├── tests/                   # Unit and integration tests
-├── scripts/                 # Development and utility scripts
-├── test_samples/            # Sample files for testing
-├── docs/                    # Project documentation
-│   ├── architecture/        # Technical documentation
-│   ├── tasks/              # Task implementation summaries
-│   └── ui/                 # UI documentation
-├── archive/                 # Archived/legacy files
-├── temp_files/             # Temporary processing files
-├── pyproject.toml          # Project dependencies and configuration
-├── docker-compose.yml      # Docker deployment configuration
-├── Dockerfile              # Docker container definition
-└── README.md               # This file
-```
+## 📄 Licence
+
+Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+
+## 🆘 Support
+
+- 📖 **Documentation**: Consultez le dossier `docs/`
+- 🐛 **Issues**: Ouvrez une issue sur GitHub
+- 💬 **Discussions**: Utilisez les GitHub Discussions
+- 📧 **Contact**: [votre-email]
+
+---
+
+**StudyRAG** - Votre assistant IA local pour l'apprentissage et la recherche documentaire 🎓✨
