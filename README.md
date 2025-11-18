@@ -1,319 +1,340 @@
-# StudyRAG 🎓
+# StudyRAG - Assistant d'Étude IA Local 🎓
 
-**Agent RAG local intelligent pour étudiants** - Système de génération augmentée par récupération utilisant Docling pour le traitement de documents, embeddings locaux, base de données vectorielle et Ollama pour les conversations IA.
+StudyRAG est un assistant d'étude personnel utilisant l'intelligence artificielle **100% locale**. Il vous permet de poser des questions sur vos documents de cours (PDF, Word, PowerPoint, etc.) et obtenir des réponses précises avec citations, le tout sans jamais envoyer vos données vers des services externes.
 
-## ✨ Fonctionnalités
+> **Basé sur le travail de [Cole Medin](https://github.com/coleam00/ottomator-agents/tree/main/docling-rag-agent)** - Merci pour l'inspiration et le code de base ! 🙏
 
-- 🤖 **Agent conversationnel local** avec Ollama (pas besoin d'OpenAI)
-- 📄 **Traitement multi-format** avec Docling (PDF, Word, PowerPoint, Excel, HTML, Audio)
-- 🔍 **Recherche sémantique** dans vos documents avec embeddings
-- 💾 **Base vectorielle** (ChromaDB + PostgreSQL/PGVector)
-- 🌐 **Interface web moderne** (React/Next.js) + CLI
-- 🎙️ **Transcription audio** avec Whisper
-- 📚 **Citations sources** pour toutes les réponses
-- 🔄 **Streaming en temps réel** des réponses
-- 🏠 **100% local** - vos données restent privées
+## 🎯 Pourquoi StudyRAG ?
 
-## 🚀 Démarrage Ultra-Rapide
+- **🔒 Confidentialité totale** : Vos documents restent sur votre machine
+- **🚀 IA locale** : Utilise Ollama (pas besoin de clé API)
+- **📚 Multi-formats** : PDF, Word, PowerPoint, HTML, Audio
+- **💬 Interface simple** : CLI interactif ou interface web
+- **🎯 Citations précises** : Références exactes avec numéros de page
 
-### Prérequis
-- **Python 3.9+** avec [UV](https://docs.astral.sh/uv/) installé
-- **Node.js 18+** et npm (pour l'interface web)
-- **Ollama** installé et en cours d'exécution ([Installation Ollama](https://ollama.ai/))
+## 🚀 Installation Ultra-Rapide
 
-### Installation en 30 secondes
+### 🪟 Windows (Débutant complet)
 
-```bash
-# 1. Cloner le projet
-git clone <votre-repo>
-cd studyrag
+**Vous n'avez RIEN d'installé ?** Pas de problème !
 
-# 2. Démarrage automatique (backend + frontend)
-python start.py
-# OU
-./start.sh
+1. **Télécharger le projet** (ZIP depuis GitHub)
+2. **Double-cliquer sur `setup.bat`**
+3. **Attendre 30-45 minutes** ☕
+
+Le script installe automatiquement :
+- Python 3.11
+- PostgreSQL 15  
+- Git
+- Ollama + modèle IA
+- Toutes les dépendances
+
+```cmd
+# Ou en ligne de commande
+setup.bat
 ```
 
-**C'est tout!** 🎉 Le script fait automatiquement:
-- ✅ Installation des dépendances Python et Node.js
-- ✅ Configuration de l'environnement (.env)
-- ✅ Démarrage du backend FastAPI
-- ✅ Démarrage du frontend React
-- ✅ Vérification des services
+**Plus de détails** : Voir `README_WINDOWS.md`
 
-### Accès rapide
-- 🌐 **Interface web**: http://localhost:3000
-- 🔧 **API Backend**: http://localhost:8000
-- 📚 **Documentation**: http://localhost:8000/docs
-- ❤️ **Health Check**: http://localhost:8000/health
+### 🐧 Linux/macOS (Développeur)
 
-## 🛠️ Configuration Manuelle (Optionnelle)
-
-Si vous préférez configurer manuellement:
-
-### 1. Variables d'environnement
 ```bash
-cp .env.example .env
-# Éditez .env selon vos besoins
+# Clone du projet
+git clone https://github.com/Lumosity23/studyRAG.git
+cd studyRAG
+
+# Setup automatique (installe tout)
+python3 setup.py
+
+# Ou version bash
+chmod +x setup.sh && ./setup.sh
 ```
 
-Variables principales:
-- `OLLAMA_BASE_URL` - URL d'Ollama (défaut: http://localhost:11434)
-- `LLM_CHOICE` - Modèle Ollama (défaut: llama3.2)
-- `DATABASE_URL` - Base de données (SQLite par défaut pour les tests)
-- `EMBEDDING_MODEL` - Modèle d'embeddings local
+**Plus de détails** : Voir `SETUP.md`
 
-### 2. Installer Ollama et modèles
+## 🎮 Première Utilisation
+
+### 1. Ingérer vos documents
 ```bash
-# Installer Ollama (si pas déjà fait)
-curl -fsSL https://ollama.ai/install.sh | sh
+# Tester avec les exemples fournis
+uv run python -m ingestion.ingest --documents test_samples/
 
-# Démarrer Ollama
-ollama serve
-
-# Installer des modèles (dans un autre terminal)
-ollama pull llama3.2        # Modèle principal recommandé
-ollama pull mistral         # Alternative
-ollama pull qwen2.5:7b      # Pour plus de performance
-```
-
-### 3. Ingestion de documents
-
-Ajoutez vos documents dans le dossier `documents/` ou `test_samples/`:
-
-**Formats supportés via Docling:**
-- 📄 **PDF** (`.pdf`)
-- 📝 **Word** (`.docx`, `.doc`) 
-- 📊 **PowerPoint** (`.pptx`, `.ppt`)
-- 📈 **Excel** (`.xlsx`, `.xls`)
-- 🌐 **HTML** (`.html`, `.htm`)
-- 📋 **Markdown** (`.md`)
-- 📃 **Texte** (`.txt`)
-- 🎵 **Audio** (`.mp3`) - transcription avec Whisper
-
-```bash
-# Ingestion automatique
+# Ou avec vos propres documents
 uv run python -m ingestion.ingest --documents documents/
-
-# Avec paramètres personnalisés
-uv run python -m ingestion.ingest --documents test_samples/ --chunk-size 800
 ```
 
-### 4. Utilisation
-
-**Interface Web (Recommandée)**
-- Ouvrez http://localhost:3000
-- Interface moderne avec chat, upload de fichiers, gestion des documents
-
-**CLI Interactif**
+### 2. Lancer l'assistant
 ```bash
+# Interface CLI interactive (recommandé)
 uv run python cli.py
+
+# Ou interface web
+uv run python main.py  # Puis aller sur http://localhost:8000
 ```
 
-**API REST**
-- Documentation: http://localhost:8000/docs
-- Endpoints: `/api/v1/chat`, `/api/v1/documents`, `/api/v1/search`
-
-## 🏗️ Architecture
-
+### 3. Poser votre première question
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  React Frontend │────▶│   FastAPI        │────▶│   ChromaDB      │
-│  (Next.js)      │     │   Backend        │     │   + PostgreSQL  │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-                               │
-                        ┌──────┴──────┐
-                        │             │
-                  ┌─────▼────┐  ┌────▼─────────┐
-                  │  Ollama  │  │ Sentence     │
-                  │   LLM    │  │ Transformers │
-                  │ (Local)  │  │ (Embeddings) │
-                  └──────────┘  └──────────────┘
-                        │
-                  ┌─────▼────┐
-                  │ Docling  │
-                  │Document  │
-                  │Processing│
-                  └──────────┘
+Vous: Qu'est-ce que StudyRAG ?
+Assistant: StudyRAG est un assistant d'étude personnel utilisant l'IA locale...
+[Source: welcome.md, page 1]
 ```
 
-### Stack Technique
-- **Frontend**: React/Next.js avec Tailwind CSS
-- **Backend**: FastAPI avec PydanticAI
-- **LLM**: Ollama (modèles locaux)
-- **Embeddings**: Sentence Transformers (local)
-- **Base vectorielle**: ChromaDB + PostgreSQL/PGVector
-- **Traitement docs**: Docling + Whisper
-- **Déploiement**: Docker + Docker Compose
+## 🛠️ Ce qui est installé
 
-## 🎙️ Transcription Audio
+### 🤖 Intelligence Artificielle
+- **Ollama** : Serveur IA local (pas de clé API nécessaire)
+- **Modèle llama3.2** : IA conversationnelle (2GB)
+- **Embeddings locaux** : Recherche sémantique dans vos documents
 
-Les fichiers audio sont automatiquement transcrits avec **Whisper** via Docling:
+### 🗄️ Base de Données
+- **PostgreSQL** : Stockage des documents et métadonnées
+- **PGVector** : Recherche vectorielle haute performance
+- **Configuration automatique** : Base `studyrag` prête à l'emploi
 
-**Fonctionnement:**
-1. Déposez des fichiers MP3 dans `documents/`
-2. Docling utilise Whisper pour la transcription
-3. Le texte est indexé et devient recherchable
-4. Citations avec timestamps dans les réponses
+### 📄 Traitement Documents
+- **Docling** : Extraction PDF, Word, PowerPoint avancée
+- **Whisper** : Transcription audio automatique
+- **Chunking intelligent** : Découpage optimal des documents
 
-**Avantages:**
-- 🎙️ **Speech-to-text**: Podcasts, interviews, cours → texte recherchable
-- ⏱️ **Timestamps**: Localisation précise du contenu
-- 🔍 **Recherche sémantique**: Trouvez du contenu audio par sujet
-- 🤖 **100% automatique**: Glissez-déposez et c'est parti
+## 🎯 Formats Supportés
 
-**Exemple de transcription:**
-```markdown
-[time: 0.0-4.0] Bienvenue dans ce podcast sur l'IA et l'apprentissage automatique.
-[time: 5.28-9.96] Aujourd'hui nous discuterons des systèmes RAG.
+| Type | Formats | Traitement |
+|------|---------|------------|
+| **Documents** | PDF, DOCX, PPTX | Docling (OCR inclus) |
+| **Web** | HTML, Markdown | Extraction directe |
+| **Audio** | MP3, WAV | Whisper (transcription) |
+| **Texte** | TXT, MD | Lecture directe |
+
+## 💡 Exemples d'Usage
+
+### 📚 Étudiant en Médecine
+```
+Vous: "Quels sont les symptômes de l'hypertension selon mes cours ?"
+Assistant: D'après votre cours de cardiologie (cardio_chap3.pdf), 
+les symptômes incluent... [Source: cardio_chap3.pdf, page 15]
 ```
 
-## 🧩 Composants Clés
+### 🏛️ Étudiant en Droit
+```
+Vous: "Résume-moi l'article 1382 du Code Civil"
+Assistant: L'article 1382 traite de la responsabilité civile...
+[Source: code_civil.pdf, page 234]
+```
 
-### Agent RAG Principal
-- **`rag_agent.py`**: Agent conversationnel avec PydanticAI
-- **`cli.py`**: Interface en ligne de commande interactive
-- **`app/main.py`**: API FastAPI pour l'interface web
+### 💻 Étudiant en Informatique
+```
+Vous: "Comment fonctionne l'algorithme de tri rapide ?"
+Assistant: Le tri rapide utilise la stratégie diviser-pour-régner...
+[Source: algorithmes_cours.pdf, page 67]
+```
 
-### Pipeline d'Ingestion
-- **`ingestion/`**: Traitement automatique des documents
-- **Docling**: Conversion multi-format (PDF, Office, HTML, Audio)
-- **Chunking intelligent**: Découpage sémantique optimisé
-- **Embeddings locaux**: Sentence Transformers
+## 🔧 Configuration Avancée
 
-### Base de Données
-- **ChromaDB**: Base vectorielle simple pour les tests
-- **PostgreSQL + PGVector**: Base vectorielle scalable
-- **SQLite**: Option légère pour le développement
-
-### Interface Web
-- **Frontend React**: Interface moderne et intuitive
-- **Upload de fichiers**: Glisser-déposer direct
-- **Chat en temps réel**: Streaming des réponses
-- **Gestion des documents**: Visualisation et organisation
-
-## ⚡ Optimisations
-
-### Performance
-- **Cache des embeddings**: Réduction des calculs répétitifs
-- **Pool de connexions**: Gestion optimisée de la base de données
-- **Streaming**: Réponses en temps réel token par token
-- **Chunking adaptatif**: Taille optimisée selon le type de document
-
-### Sécurité et Confidentialité
-- **100% local**: Aucune donnée envoyée vers des services externes
-- **Ollama local**: LLM qui tourne sur votre machine
-- **Embeddings locaux**: Sentence Transformers sans API
-- **Données privées**: Vos documents restent sur votre système
-
-## 🐳 Déploiement Docker
-
-### Démarrage avec Docker Compose
-
+### Variables d'environnement (`.env`)
 ```bash
-# Démarrer tous les services
-docker-compose up -d
+# Base de données
+DATABASE_URL=postgresql://studyrag:password@localhost:5432/studyrag
 
-# Ingestion de documents
-docker-compose --profile ingestion up ingestion
+# IA locale (recommandé)
+OLLAMA_BASE_URL=http://localhost:11434
+LLM_CHOICE=llama3.2
 
-# Voir les logs
-docker-compose logs -f rag-agent
+# Optionnel : OpenAI en fallback
+# OPENAI_API_KEY=sk-your-key-here
+
+# Paramètres de performance
+CHUNK_SIZE=1000
+CHUNK_OVERLAP=200
+MAX_SEARCH_RESULTS=5
 ```
 
-### Déploiement Production
+### Modèles IA disponibles
 ```bash
-# Build optimisé
-docker build -t studyrag:prod .
+# Modèles Ollama (locaux)
+ollama pull llama3.2      # Équilibré (recommandé)
+ollama pull mistral       # Rapide
+ollama pull qwen2.5       # Multilingue
 
-# Lancement avec variables d'environnement
-docker run -d \
-  -e OLLAMA_BASE_URL=http://ollama:11434 \
-  -e DATABASE_URL=postgresql://... \
-  -p 8000:8000 \
-  studyrag:prod
+# Changer de modèle
+export LLM_CHOICE=mistral
 ```
 
-## 📚 Tutoriels et Exemples
+## 🧪 Tests et Vérification
 
-### 🎓 Nouveau avec Docling?
+### Vérifier l'installation
+```bash
+# Test complet de l'installation
+python scripts/post_setup_check.py
 
-**Commencez par les tutoriels!** Consultez le dossier [`docling_basics/`](./docling_basics/) pour des exemples progressifs:
+# Tests individuels
+python scripts/test_ollama_setup.py      # Test Ollama
+python scripts/test_embedding_models.py  # Test embeddings
+python scripts/verify_implementation.py  # Test complet
+```
 
-1. **Conversion PDF simple** - Traitement de base des documents
-2. **Support multi-format** - PDF, Word, PowerPoint
-3. **Transcription audio** - Speech-to-text avec Whisper
-4. **Chunking hybride** - Découpage intelligent pour RAG
+### Performance et métriques
+```bash
+# Évaluation de la qualité des réponses
+python scripts/test_evaluation.py
 
-### API REST
+# Statistiques de la base de données
+psql $DATABASE_URL -c "
+SELECT COUNT(*) as documents, 
+       (SELECT COUNT(*) FROM chunks) as chunks;
+"
+```
 
-**Endpoints principaux:**
-- `POST /api/v1/chat` - Conversation avec l'agent
-- `POST /api/v1/documents/upload` - Upload de documents
-- `GET /api/v1/documents` - Liste des documents
-- `POST /api/v1/search` - Recherche sémantique
-- `GET /health` - Statut des services
+## 🚨 Dépannage Rapide
 
-**Documentation complète:** http://localhost:8000/docs
+### Problèmes courants
+
+#### Ollama ne répond pas
+```bash
+# Redémarrer Ollama
+pkill ollama
+ollama serve &
+
+# Tester la connexion
+curl http://localhost:11434/api/tags
+```
+
+#### Base de données inaccessible
+```bash
+# Vérifier PostgreSQL
+sudo systemctl status postgresql  # Linux
+Get-Service postgresql*           # Windows
+
+# Tester la connexion
+psql $DATABASE_URL -c "SELECT 1;"
+```
+
+#### Python/UV non trouvé
+```bash
+# Ajouter au PATH (Linux/macOS)
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Redémarrer le terminal (Windows)
+```
+
+**Plus de solutions** : Voir `docs/troubleshooting.md`
 
 ## 📁 Structure du Projet
 
 ```
 studyrag/
-├── start.py                 # 🚀 Script de démarrage automatique
-├── start.sh                 # 🚀 Script bash alternatif
-├── cli.py                   # 💬 Interface CLI interactive
-├── rag_agent.py             # 🤖 Agent RAG principal
-├── main.py                  # 📄 Point d'entrée legacy
-├── app/                     # 🌐 Backend FastAPI
-│   ├── main.py              # API principale
-│   ├── api/                 # Endpoints REST
-│   ├── core/                # Configuration et middleware
-│   ├── models/              # Modèles de données
-│   └── services/            # Services métier
-├── frontend/                # ⚛️ Interface React/Next.js
-│   ├── src/                 # Code source React
-│   ├── components/          # Composants UI
-│   ├── pages/               # Pages Next.js
-│   └── package.json         # Dépendances Node.js
-├── ingestion/               # 📥 Pipeline d'ingestion
-│   ├── ingest.py            # Script principal
-│   ├── embedder.py          # Génération d'embeddings
-│   └── chunker.py           # Découpage de documents
-├── utils/                   # 🔧 Modules utilitaires
-│   ├── providers.py         # Configuration Ollama/modèles
-│   ├── db_utils.py          # Gestion base de données
-│   └── models.py            # Modèles Pydantic
-├── documents/               # 📚 Vos documents à traiter
-├── test_samples/            # 📋 Fichiers d'exemple
-├── docling_basics/          # 🎓 Tutoriels Docling
-├── scripts/                 # 🧪 Scripts de test et debug
-├── docs/                    # 📖 Documentation
-├── sql/                     # 🗄️ Schémas base de données
-├── pyproject.toml           # 📦 Configuration Python/UV
-├── docker-compose.yml       # 🐳 Déploiement Docker
-└── README.md                # 📄 Ce fichier
+├── 🚀 setup.bat/setup.sh        # Scripts d'installation
+├── 💬 cli.py                    # Interface principale
+├── 🤖 rag_agent.py             # Agent IA
+├── 📄 ingestion/               # Traitement documents
+├── 🛠️ utils/                   # Utilitaires
+├── 📚 docs/                    # Documentation complète
+├── 🧪 scripts/                 # Tests et maintenance
+├── 📖 test_samples/            # Documents d'exemple
+└── ⚙️ .env                     # Configuration
 ```
 
-## 🤝 Contribution
+## 🎓 Cas d'Usage Étudiants
 
-1. Fork le projet
-2. Créez votre branche (`git checkout -b feature/AmazingFeature`)
-3. Committez vos changements (`git commit -m 'Add AmazingFeature'`)
-4. Push vers la branche (`git push origin feature/AmazingFeature`)
-5. Ouvrez une Pull Request
+### 📝 Révisions d'Examens
+- Posez des questions sur vos cours
+- Obtenez des résumés automatiques
+- Vérifiez votre compréhension
 
-## 📄 Licence
+### 📚 Recherche Documentaire
+- Trouvez rapidement des informations
+- Citations automatiques avec sources
+- Croisement de plusieurs documents
 
-Ce projet est sous licence MIT. Voir le fichier `LICENSE` pour plus de détails.
+### 🎯 Préparation de Présentations
+- Extrayez les points clés
+- Générez des plans détaillés
+- Vérifiez la cohérence des arguments
 
-## 🆘 Support
+## 🌟 Fonctionnalités Avancées
 
-- 📖 **Documentation**: Consultez le dossier `docs/`
-- 🐛 **Issues**: Ouvrez une issue sur GitHub
-- 💬 **Discussions**: Utilisez les GitHub Discussions
-- 📧 **Contact**: [votre-email]
+### 🔍 Recherche Hybride
+- Recherche sémantique (sens des mots)
+- Recherche textuelle (mots-clés exacts)
+- Combinaison intelligente des résultats
+
+### 📊 Citations Précises
+- Numéro de page exact
+- Nom du document source
+- Contexte de la citation
+
+### 🧠 Mémoire Conversationnelle
+- L'assistant se souvient du contexte
+- Questions de suivi naturelles
+- Historique des conversations
+
+## 🏗️ Architecture Technique
+
+### Stack Principal
+- **Backend** : Python 3.9+ avec FastAPI
+- **Agent IA** : PydanticAI pour la logique conversationnelle
+- **LLM Local** : Ollama (llama3.2, mistral, qwen2.5)
+- **Embeddings** : Sentence Transformers (local) avec fallback OpenAI
+- **Base de données** : PostgreSQL avec PGVector pour la recherche vectorielle
+- **Traitement documents** : Docling (PDF, Word, PowerPoint, HTML, Audio via Whisper)
+- **Interface** : CLI avec Rich + Interface web FastAPI optionnelle
+
+### Composants Principaux
+- **Agent RAG** (`rag_agent.py`) : Agent conversationnel principal avec PydanticAI
+- **CLI Interactif** (`cli.py`) : Interface en ligne de commande avec Rich
+- **Pipeline d'ingestion** (`ingestion/`) : Traitement et indexation des documents
+- **Utilitaires** (`utils/`) : Modules pour DB, providers, embeddings
+
+## 🤝 Contribution et Support
+
+### 🐛 Signaler un Bug
+1. Vérifier les [issues existantes](https://github.com/votre-repo/issues)
+2. Créer une nouvelle issue avec :
+   - Description du problème
+   - Étapes pour reproduire
+   - Logs d'erreur
+
+### 💡 Proposer une Fonctionnalité
+1. Ouvrir une issue "Feature Request"
+2. Décrire le cas d'usage
+3. Proposer une implémentation
+
+### 📖 Documentation
+- **Guide complet** : `SETUP.md`
+- **Dépannage** : `docs/troubleshooting.md`
+- **Développement** : `docs/development-guidelines.md`
+- **Commandes rapides** : `docs/quick-commands.md`
+
+## 📄 Licence et Crédits
+
+### 📜 Licence
+MIT License - Utilisez librement pour vos études !
+
+### 🙏 Remerciements Spéciaux
+- **[Cole Medin](https://github.com/coleam00)** - Créateur du [repo original](https://github.com/coleam00/ottomator-agents/tree/main/docling-rag-agent) qui a inspiré ce projet
+- **Docling** - Traitement avancé de documents
+- **Ollama** - IA locale accessible
+- **PydanticAI** - Framework d'agents IA
 
 ---
 
-**StudyRAG** - Votre assistant IA local pour l'apprentissage et la recherche documentaire 🎓✨
+## 🚀 Commencer Maintenant
+
+### Windows (Débutant)
+```cmd
+# Télécharger le ZIP, puis :
+setup.bat
+```
+
+### Linux/macOS (Développeur)
+```bash
+git clone https://github.com/votre-repo/studyrag
+cd studyrag && python3 setup.py
+```
+
+### Première question
+```bash
+uv run python cli.py
+# Puis tapez : "Explique-moi ce qu'est StudyRAG"
+```
+
+**StudyRAG - Votre assistant d'étude personnel, 100% local et privé** 🎓✨
