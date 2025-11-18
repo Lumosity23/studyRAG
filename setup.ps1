@@ -171,24 +171,70 @@ function Install-PostgreSQL {
 function Install-UV {
     Write-Step "Installation de UV (gestionnaire de dépendances Python)"
     
+    # Vérifier si UV est déjà installé
     if (Get-Command uv -ErrorAction SilentlyContinue) {
         Write-Success "UV déjà installé: $(uv --version)"
         return $true
     }
     
     try {
+        Write-Host "Téléchargement et installation de UV..."
+        
         # Installation via PowerShell (méthode officielle)
         Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression
         
-        # Ajouter UV au PATH pour cette session
-        $uvPath = "$env:USERPROFILE\.cargo\bin"
-        $env:Path += ";$uvPath"
+        # Chemins possibles pour UV
+        $uvPaths = @(
+            "$env:USERPROFILE\.cargo\bin",
+            "$env:LOCALAPPDATA\Programs\uv\bin",
+            "$env:APPDATA\uv\bin"
+        )
         
-        Write-Success "UV installé avec succès"
-        return $true
+        # Trouver UV et l'ajouter au PATH
+        $uvFound = $false
+        foreach ($path in $uvPaths) {
+            if (Test-Path "$path\uv.exe") {
+                Write-Host "UV trouvé dans: $path"
+                
+                # Ajouter au PATH de la session actuelle
+                $env:Path = "$path;$env:Path"
+                
+                # Ajouter au PATH permanent de l'utilisateur
+                $currentPath = [Environment]::GetEnvironmentVariable("Path", "User")
+                if ($currentPath -notlike "*$path*") {
+                    [Environment]::SetEnvironmentVariable("Path", "$currentPath;$path", "User")
+                    Write-Host "UV ajouté au PATH permanent"
+                }
+                
+                $uvFound = $true
+                break
+            }
+        }
+        
+        if (-not $uvFound) {
+            # Essayer de rafraîchir l'environnement
+            $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+            
+            # Vérifier à nouveau
+            if (Get-Command uv -ErrorAction SilentlyContinue) {
+                $uvFound = $true
+            }
+        }
+        
+        if ($uvFound) {
+            Write-Success "UV installé et configuré avec succès"
+            Write-Host "Version: $(uv --version)"
+            return $true
+        } else {
+            throw "UV installé mais non trouvé dans le PATH"
+        }
     }
     catch {
         Write-Error "Échec de l'installation de UV: $_"
+        Write-Host "Essayez d'installer UV manuellement:"
+        Write-Host "1. Ouvrir un nouveau PowerShell"
+        Write-Host "2. Exécuter: irm https://astral.sh/uv/install.ps1 | iex"
+        Write-Host "3. Redémarrer PowerShell"
         return $false
     }
 }
@@ -196,23 +242,50 @@ function Install-UV {
 function Setup-PythonEnvironment {
     Write-Step "Configuration de l'environnement Python"
     
+    # Vérifier que UV est accessible
+    if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
+        Write-Error "UV n'est pas accessible. Redémarrez PowerShell et relancez le script."
+        return $false
+    }
+    
     try {
         # Synchroniser les dépendances
         Write-Host "Installation des dépendances Python..."
-        uv sync
+        $syncResult = uv sync 2>&1
+        
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Problème avec uv sync: $syncResult"
+            Write-Host "Tentative avec pip en fallback..."
+            
+            # Fallback avec pip si UV échoue
+            python -m pip install --upgrade pip
+            python -m pip install -r requirements.txt
+        }
         
         # Vérifier l'installation
+        Write-Host "Test des dépendances critiques..."
         $testResult = uv run python -c "import fastapi, asyncpg, rich; print('OK')" 2>$null
+        
         if ($testResult -eq "OK") {
             Write-Success "Environnement Python configuré"
             return $true
         }
         else {
-            throw "Test des dépendances échoué"
+            # Test avec python direct
+            $testResult2 = python -c "import fastapi, asyncpg, rich; print('OK')" 2>$null
+            if ($testResult2 -eq "OK") {
+                Write-Success "Environnement Python configuré (via pip)"
+                return $true
+            } else {
+                throw "Test des dépendances échoué"
+            }
         }
     }
     catch {
         Write-Error "Erreur lors de la configuration Python: $_"
+        Write-Host "Essayez manuellement:"
+        Write-Host "1. pip install fastapi asyncpg rich pydantic-ai docling"
+        Write-Host "2. Ou redémarrez PowerShell et relancez le script"
         return $false
     }
 }

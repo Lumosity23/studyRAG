@@ -94,6 +94,34 @@ Dans le CLI, tapez : `"Qu'est-ce que StudyRAG ?"`
 
 ## 🆘 Problèmes courants
 
+### ⚠️ UV non reconnu (Problème #1 le plus fréquent)
+
+**Symptôme** : `'uv' is not recognized as an internal or external command`
+
+**Solutions rapides** :
+```powershell
+# 1. SOLUTION LA PLUS SIMPLE: Redémarrer PowerShell
+# Fermer complètement PowerShell et le rouvrir
+
+# 2. Script de diagnostic automatique
+.\fix_uv_windows.ps1
+
+# 3. Vérifier si UV est installé
+where uv
+# Si rien ne s'affiche, UV n'est pas dans le PATH
+
+# 4. Ajouter manuellement au PATH
+# Aller dans: Panneau de configuration → Système → Variables d'environnement
+# Modifier la variable PATH utilisateur
+# Ajouter: C:\Users\VotreNom\.cargo\bin
+
+# 5. Réinstaller UV
+irm https://astral.sh/uv/install.ps1 | iex
+
+# 6. Alternative: Installer via pip
+pip install uv
+```
+
 ### "Execution Policy" PowerShell
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -116,8 +144,20 @@ ollama serve
 ```
 
 ### Python/UV non trouvé après installation
-- **Redémarrer PowerShell/Terminal**
-- Les nouveaux programmes sont ajoutés au PATH
+```powershell
+# Solution 1: Redémarrer PowerShell (le plus simple)
+# Fermer et rouvrir PowerShell
+
+# Solution 2: Script de diagnostic automatique
+.\fix_uv_windows.ps1
+
+# Solution 3: Ajouter manuellement au PATH
+# Panneau de configuration → Système → Variables d'environnement
+# Modifier PATH utilisateur → Ajouter: C:\Users\VotreNom\.cargo\bin
+
+# Solution 4: Installation alternative via pip
+pip install uv
+```
 
 ## 📁 Structure après installation
 
